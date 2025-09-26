@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4cats.studio - Photobooth</title>
+    <style>
+        @font-face {
+            font-family: 'Genty';
+            src: url('fonts/Genty.ttf') format('truetype');
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Genty', 'Segoe UI', Arial, sans-serif;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(251, 111, 146, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 182, 193, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, rgba(255, 192, 203, 0.2) 0%, transparent 50%),
+                linear-gradient(135deg, #FFC2D1 0%, #FFB3C6 25%, #FB6F92 50%, #FF8FA3 75%, #FFB3C6 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .background-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(255, 255, 255, 0.02) 2px,
+                    rgba(255, 255, 255, 0.02) 4px
+                );
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .main-container {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 30px;
+            padding: 60px 40px;
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-width: 600px;
+            width: 90%;
+        }
+
+        .logo {
+            width: 120px;
+            height: auto;
+            margin-bottom: 30px;
+            filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.2));
+            animation: logoFloat 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes logoFloat {
+            from { transform: translateY(0px); }
+            to { transform: translateY(-10px); }
+        }
+
+        .welcome-text {
+            font-size: 3.5em;
+            margin-bottom: 50px;
+            background: linear-gradient(45deg, #E91E63, #FB6F92, #FF8FA3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 6px 12px rgba(233, 30, 99, 0.3);
+            font-weight: bold;
+            letter-spacing: 0.08em;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 40px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            font-weight: 300;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .mode-button {
+            background: linear-gradient(45deg, #FB6F92, #FF8FA3);
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            font-size: 1.3em;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Genty', Arial, sans-serif;
+            font-weight: bold;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            box-shadow: 
+                0 8px 16px rgba(251, 111, 146, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+            min-width: 180px;
+        }
+
+        .mode-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .mode-button:hover::before {
+            left: 100%;
+        }
+
+        .mode-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 
+                0 12px 24px rgba(251, 111, 146, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            background: linear-gradient(45deg, #FF8FA3, #FFB3C6);
+        }
+
+        .mode-button:active {
+            transform: translateY(-1px);
+        }
+
+        .beauty-button {
+            background: linear-gradient(45deg, #FB6F92, #FF8FA3);
+        }
+
+        .vintage-button {
+            background: linear-gradient(45deg, #8B4513, #A0522D);
+            box-shadow: 
+                0 8px 16px rgba(139, 69, 19, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .vintage-button:hover {
+            background: linear-gradient(45deg, #A0522D, #CD853F);
+            box-shadow: 
+                0 12px 24px rgba(139, 69, 19, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+
+        .icon {
+            font-size: 1.5em;
+            margin-right: 10px;
+            display: inline-block;
+        }
+
+        .floating-elements {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .floating-element {
+            position: absolute;
+            opacity: 0.1;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .floating-element:nth-child(1) {
+            top: 20%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .floating-element:nth-child(2) {
+            top: 60%;
+            right: 15%;
+            animation-delay: 2s;
+        }
+
+        .floating-element:nth-child(3) {
+            bottom: 30%;
+            left: 20%;
+            animation-delay: 4s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 40px 20px;
+                margin: 20px;
+            }
+            
+            .welcome-text {
+                font-size: 2.8em;
+                margin-bottom: 40px;
+            }
+            
+            .buttons {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .mode-button {
+                padding: 18px 30px;
+                font-size: 1.2em;
+                min-width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-overlay"></div>
+    
+    <div class="floating-elements">
+        <div class="floating-element" style="font-size: 3em;">📸</div>
+        <div class="floating-element" style="font-size: 2.5em;">✨</div>
+        <div class="floating-element" style="font-size: 2em;">💄</div>
+    </div>
+
+    <div class="main-container">
+        <img src="1.jpg" alt="4cats.studio Logo" class="logo">
+        <div class="welcome-text">4cats.studio</div>
+        
+        <div class="buttons">
+            <button class="mode-button beauty-button" onclick="window.location.href='beauty.html'">
+                <span class="icon">💄</span>Beauty Mode
+            </button>
+            <button class="mode-button vintage-button" onclick="window.location.href='vintage.html'">
+                <span class="icon">📷</span>Vintage Mode
+            </button>
+        </div>
+    </div>
+</body>
+</html>

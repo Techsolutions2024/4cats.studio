@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vintage Mode - Webcam Live</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(139, 69, 19, 0.4) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(160, 82, 45, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, rgba(101, 67, 33, 0.3) 0%, transparent 50%),
+                linear-gradient(135deg, #8B4513 0%, #A0522D 25%, #CD853F 50%, #DEB887 75%, #F5DEB3 100%);
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .vintage-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(0, 0, 0, 0.03) 2px,
+                    rgba(0, 0, 0, 0.03) 4px
+                );
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .main-container {
+            display: flex;
+            height: 100vh;
+            position: relative;
+            z-index: 2;
+        }
+
+        .title-overlay {
+            position: fixed;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            text-align: center;
+            pointer-events: none;
+        }
+
+        .title-overlay h1 {
+            font-size: 3.2em;
+            font-weight: bold;
+            background: linear-gradient(45deg, #8B4513, #A0522D, #CD853F);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 6px 12px rgba(139, 69, 19, 0.3);
+            letter-spacing: 0.08em;
+            font-family: 'Georgia', serif;
+            animation: vintageGlow 3s ease-in-out infinite alternate;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+        }
+
+        @keyframes vintageGlow {
+            from {
+                text-shadow: 0 6px 12px rgba(139, 69, 19, 0.3);
+            }
+            to {
+                text-shadow: 0 8px 16px rgba(139, 69, 19, 0.6);
+            }
+        }
+
+        .left-panel {
+            width: 20%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-right: 2px solid rgba(139, 69, 19, 0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 10px;
+            box-shadow: 
+                2px 0 20px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .preset-section {
+            width: 100%;
+            margin-bottom: 30px;
+        }
+
+        .preset-section h3 {
+            color: #F5DEB3;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            border-bottom: 2px solid rgba(205, 133, 63, 0.6);
+            padding-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .preset-button {
+            width: 100%;
+            background: linear-gradient(45deg, rgba(205, 133, 63, 0.8), rgba(222, 184, 135, 0.9));
+            color: #8B4513;
+            border: 2px solid rgba(139, 69, 19, 0.4);
+            padding: 15px 10px;
+            margin: 8px 0;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            font-family: 'Georgia', serif;
+            transition: all 0.3s ease;
+            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
+            box-shadow: 
+                0 4px 8px rgba(139, 69, 19, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .preset-button:hover {
+            background: linear-gradient(45deg, rgba(222, 184, 135, 0.9), rgba(245, 222, 179, 0.95));
+            transform: translateY(-2px);
+            box-shadow: 
+                0 6px 12px rgba(139, 69, 19, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4);
+            border-color: rgba(139, 69, 19, 0.6);
+        }
+
+        .preset-button.active {
+            background: linear-gradient(45deg, rgba(139, 69, 19, 0.9), rgba(160, 82, 45, 0.8));
+            color: #F5DEB3;
+            border-color: rgba(139, 69, 19, 0.6);
+            box-shadow: 
+                inset 0 2px 4px rgba(0, 0, 0, 0.3),
+                0 4px 8px rgba(139, 69, 19, 0.3);
+        }
+
+        .exit-button {
+            width: 100%;
+            background: linear-gradient(45deg, rgba(139, 0, 0, 0.8), rgba(220, 20, 60, 0.9));
+            color: #F5DEB3;
+            border: 2px solid rgba(220, 20, 60, 0.4);
+            padding: 15px 10px;
+            margin: 20px 0 0 0;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            font-family: 'Georgia', serif;
+            transition: all 0.3s ease;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+            box-shadow: 
+                0 4px 8px rgba(139, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .exit-button:hover {
+            background: linear-gradient(45deg, rgba(220, 20, 60, 0.9), rgba(255, 99, 71, 0.9));
+            transform: translateY(-2px);
+            box-shadow: 
+                0 6px 12px rgba(139, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            border-color: rgba(220, 20, 60, 0.6);
+        }
+
+        .main-panel {
+            width: 80%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        .camera-container {
+            width: 100%;
+            max-width: 750px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 
+                0 0 40px rgba(0, 0, 0, 0.6),
+                inset 0 0 30px rgba(139, 69, 19, 0.1);
+            border: 3px solid rgba(139, 69, 19, 0.4);
+            position: relative;
+            aspect-ratio: 4/3;
+        }
+
+        .camera-container::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            background: linear-gradient(45deg, rgba(205, 133, 63, 0.6), rgba(222, 184, 135, 0.8), rgba(205, 133, 63, 0.6));
+            border-radius: 23px;
+            z-index: -1;
+        }
+
+        .camera-container video, .camera-container canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 15px;
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.6);
+            background: #000;
+            object-fit: cover;
+        }
+
+        .status-display {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(139, 69, 19, 0.9);
+            color: #F5DEB3;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            border: 2px solid #654321;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .fps-display {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #F5DEB3;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.8em;
+            border: 1px solid #654321;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(139, 69, 19, 0.95);
+            backdrop-filter: blur(20px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            color: #F5DEB3;
+            font-size: 1.5em;
+            font-family: 'Georgia', serif;
+        }
+
+        .loading-overlay.hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+            }
+            
+            .left-panel {
+                width: 100%;
+                height: auto;
+                flex-direction: row;
+                padding: 10px;
+                border-right: none;
+                border-bottom: 3px solid #654321;
+            }
+            
+            .preset-section {
+                margin-bottom: 0;
+                margin-right: 20px;
+            }
+            
+            .preset-button {
+                margin: 4px 2px;
+                padding: 10px 8px;
+                font-size: 0.9em;
+            }
+            
+            .main-panel {
+                width: 100%;
+                height: calc(100vh - 120px);
+            }
+            
+            .title-overlay h1 {
+                font-size: 2.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="vintage-overlay"></div>
+    
+    <div class="loading-overlay" id="loadingOverlay">
+        <div>🎬 Khởi tạo Vintage Mode...</div>
+    </div>
+
+    <div class="title-overlay">
+        <h1>VINTAGE MODE</h1>
+    </div>
+
+    <div class="main-container">
+        <div class="left-panel">
+            <div class="preset-section">
+                <h3>🎨 Preset Filters</h3>
+                <button class="preset-button" id="bwFilter">B&W</button>
+                <button class="preset-button" id="no2Filter">Vintage</button>
+                <button class="preset-button" id="trongFilter">Original</button>
+                <button class="preset-button" id="warmFilter">Warm</button>
+            </div>
+            
+            <button class="exit-button" id="exitButton">Back</button>
+        </div>
+
+        <div class="main-panel">
+            <div class="camera-container">
+                <video id="originalVideo" autoplay muted playsinline style="position:absolute; opacity:0; pointer-events:none; width:1px; height:1px;"></video>
+                <canvas id="filteredCanvas"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class CubeLUTReader {
+            constructor() {
+                this.lutData = null;
+                this.lutSize = 0;
+            }
+
+            async readCubeFile(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const text = e.target.result;
+                            const lutData = this.parseCubeFile(text);
+                            resolve(lutData);
+                        } catch (error) {
+                            reject(error);
+                        }
+                    };
+                    reader.onerror = () => reject(new Error('Không thể đọc file'));
+                    reader.readAsText(file);
+                });
+            }
+
+            parseCubeFile(text) {
+                const lines = text.split('\n').map(line => line.trim()).filter(line => line && !line.startsWith('#'));
+                let lutSize = 0;
+                let lutData = [];
+
+                for (const line of lines) {
+                    if (line.startsWith('LUT_3D_SIZE')) {
+                        lutSize = parseInt(line.split(/\s+/)[1]);
+                        if (lutSize !== 32 && lutSize !== 64) {
+                            throw new Error(`Kích thước LUT không được hỗ trợ: ${lutSize}. Chỉ hỗ trợ 32x32x32 và 64x64x64`);
+                        }
+                        continue;
+                    }
+
+                    if (line.startsWith('DOMAIN_MIN') || line.startsWith('DOMAIN_MAX') || 
+                        line.startsWith('TITLE') || line.startsWith('LUT_1D_SIZE')) {
+                        continue;
+                    }
+
+                    const values = line.split(/\s+/).map(parseFloat);
+                    if (values.length === 3 && values.every(v => !isNaN(v))) {
+                        lutData.push(values);
+                    }
+                }
+
+                if (lutSize === 0) {
+                    throw new Error('Không tìm thấy LUT_3D_SIZE trong file');
+                }
+
+                const expectedDataPoints = lutSize * lutSize * lutSize;
+                if (lutData.length !== expectedDataPoints) {
+                    throw new Error(`Dữ liệu LUT không đúng. Mong đợi ${expectedDataPoints} điểm dữ liệu, nhưng có ${lutData.length}`);
+                }
+
+                return { lutData, lutSize };
+            }
+
+            applyLUT(imageData, lutData, lutSize) {
+                const data = imageData.data;
+                const totalPixels = data.length / 4;
+                
+                for (let i = 0; i < totalPixels; i++) {
+                    const pixelIndex = i * 4;
+                    const r = data[pixelIndex] / 255;
+                    const g = data[pixelIndex + 1] / 255;
+                    const b = data[pixelIndex + 2] / 255;
+
+                    const newColor = this.interpolateLUT(r, g, b, lutData, lutSize);
+                    
+                    data[pixelIndex] = Math.round(newColor.r * 255);
+                    data[pixelIndex + 1] = Math.round(newColor.g * 255);
+                    data[pixelIndex + 2] = Math.round(newColor.b * 255);
+                }
+
+                return imageData;
+            }
+
+            interpolateLUT(r, g, b, lutData, lutSize) {
+                r = Math.max(0, Math.min(1, r));
+                g = Math.max(0, Math.min(1, g));
+                b = Math.max(0, Math.min(1, b));
+
+                const scale = lutSize - 1;
+                const rIndex = r * scale;
+                const gIndex = g * scale;
+                const bIndex = b * scale;
+
+                const rLow = Math.floor(rIndex);
+                const gLow = Math.floor(gIndex);
+                const bLow = Math.floor(bIndex);
+
+                const rHigh = Math.min(rLow + 1, scale);
+                const gHigh = Math.min(gLow + 1, scale);
+                const bHigh = Math.min(bLow + 1, scale);
+
+                const rFrac = rIndex - rLow;
+                const gFrac = gIndex - gLow;
+                const bFrac = bIndex - bLow;
+
+                const c000 = this.getLUTValue(rLow, gLow, bLow, lutData, lutSize);
+                const c001 = this.getLUTValue(rLow, gLow, bHigh, lutData, lutSize);
+                const c010 = this.getLUTValue(rLow, gHigh, bLow, lutData, lutSize);
+                const c011 = this.getLUTValue(rLow, gHigh, bHigh, lutData, lutSize);
+                const c100 = this.getLUTValue(rHigh, gLow, bLow, lutData, lutSize);
+                const c101 = this.getLUTValue(rHigh, gLow, bHigh, lutData, lutSize);
+                const c110 = this.getLUTValue(rHigh, gHigh, bLow, lutData, lutSize);
+                const c111 = this.getLUTValue(rHigh, gHigh, bHigh, lutData, lutSize);
+
+                const c00 = this.lerpColor(c000, c001, bFrac);
+                const c01 = this.lerpColor(c010, c011, bFrac);
+                const c10 = this.lerpColor(c100, c101, bFrac);
+                const c11 = this.lerpColor(c110, c111, bFrac);
+
+                const c0 = this.lerpColor(c00, c01, gFrac);
+                const c1 = this.lerpColor(c10, c11, gFrac);
+
+                return this.lerpColor(c0, c1, rFrac);
+            }
+
+            getLUTValue(rIndex, gIndex, bIndex, lutData, lutSize) {
+                const index = bIndex * lutSize * lutSize + gIndex * lutSize + rIndex;
+                if (index >= 0 && index < lutData.length) {
+                    return {
+                        r: lutData[index][0],
+                        g: lutData[index][1],
+                        b: lutData[index][2]
+                    };
+                }
+                return { r: 0, g: 0, b: 0 };
+            }
+
+            lerpColor(color1, color2, t) {
+                return {
+                    r: color1.r + (color2.r - color1.r) * t,
+                    g: color1.g + (color2.g - color1.g) * t,
+                    b: color1.b + (color2.b - color1.b) * t
+                };
+            }
+        }
+
+        // Application logic
+        const lutReader = new CubeLUTReader();
+        let currentLUT = null;
+        let videoStream = null;
+        let isFilterEnabled = false;
+        let animationId = null;
+        let currentPreset = null;
+
+        // UI elements
+        const originalVideo = document.getElementById('originalVideo');
+        const filteredCanvas = document.getElementById('filteredCanvas');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+
+        // FPS tracking
+        let lastTime = 0;
+        let frameCount = 0;
+        let fps = 0;
+
+        function setActivePreset(presetName) {
+            // Remove active class from all buttons
+            document.querySelectorAll('.preset-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Add active class to current preset
+            if (presetName) {
+                const activeButton = document.getElementById(presetName + 'Filter');
+                if (activeButton) {
+                    activeButton.classList.add('active');
+                }
+            }
+        }
+
+        // Parse cube text
+        CubeLUTReader.prototype.parseCubeText = function(text) {
+            return this.parseCubeFile(text);
+        };
+
+        // Load preset filter
+        async function loadPresetFilter(filename, displayName, presetName) {
+            try {
+                const response = await fetch(`./filter/${filename}`);
+                if (!response.ok) {
+                    throw new Error('Không thể tải file filter');
+                }
+                const text = await response.text();
+                currentLUT = lutReader.parseCubeText(text);
+                currentPreset = presetName;
+                isFilterEnabled = true;
+                
+                setActivePreset(presetName);
+                
+            } catch (error) {
+                currentLUT = null;
+                isFilterEnabled = false;
+                currentPreset = null;
+                setActivePreset(null);
+            }
+        }
+
+        // Preset filter buttons
+        document.getElementById('bwFilter').addEventListener('click', () => loadPresetFilter('bw.CUBE', 'BW Filter', 'bw'));
+        document.getElementById('no2Filter').addEventListener('click', () => loadPresetFilter('no2.cube', 'NO2 Filter', 'no2'));
+        document.getElementById('trongFilter').addEventListener('click', () => loadPresetFilter('trong.CUBE', 'Trong Filter', 'trong'));
+        document.getElementById('warmFilter').addEventListener('click', () => loadPresetFilter('WARM.CUBE', 'Warm Filter', 'warm'));
+
+        // Exit button
+        document.getElementById('exitButton').addEventListener('click', () => {
+            window.location.href = 'home.html';
+        });
+
+        // Auto-start camera
+        async function startCamera() {
+            try {
+                const constraints = {
+                    video: {
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 },
+                        facingMode: 'user'
+                    }
+                };
+
+                videoStream = await navigator.mediaDevices.getUserMedia(constraints);
+                originalVideo.srcObject = videoStream;
+                await originalVideo.play().catch(() => {/* ignore autoplay errors due to mute handled */});
+
+                const finalizeSetup = () => {
+                    const actualWidth = originalVideo.videoWidth || 1280;
+                    const actualHeight = originalVideo.videoHeight || 720;
+                    filteredCanvas.width = actualWidth;
+                    filteredCanvas.height = actualHeight;
+                    loadingOverlay.classList.add('hidden');
+                    startProcessing();
+                };
+
+                if (originalVideo.readyState >= 2) {
+                    finalizeSetup();
+                } else {
+                    originalVideo.addEventListener('loadedmetadata', finalizeSetup, { once: true });
+                    originalVideo.addEventListener('playing', finalizeSetup, { once: true });
+                }
+
+            } catch (error) {
+                loadingOverlay.classList.add('hidden');
+            }
+        }
+
+        // Process video frames
+        function startProcessing() {
+            function processFrame() {
+                if (!videoStream || originalVideo.readyState < 2) {
+                    animationId = requestAnimationFrame(processFrame);
+                    return;
+                }
+
+                const currentTime = Date.now();
+                frameCount++;
+
+                // Calculate FPS
+                if (currentTime - lastTime >= 1000) {
+                    fps = Math.round((frameCount * 1000) / (currentTime - lastTime));
+                    frameCount = 0;
+                    lastTime = currentTime;
+                }
+
+                const ctx = filteredCanvas.getContext('2d');
+                
+                // Flip camera horizontally
+                ctx.save();
+                ctx.scale(-1, 1);
+                ctx.translate(-filteredCanvas.width, 0);
+                
+                if (isFilterEnabled && currentLUT) {
+                    // Draw original video to canvas
+                    ctx.drawImage(originalVideo, 0, 0, filteredCanvas.width, filteredCanvas.height);
+                    
+                    // Get image data
+                    const imageData = ctx.getImageData(0, 0, filteredCanvas.width, filteredCanvas.height);
+                    
+                    // Apply LUT filter
+                    const filteredImageData = lutReader.applyLUT(imageData, currentLUT.lutData, currentLUT.lutSize);
+                    
+                    // Put filtered data back
+                    ctx.putImageData(filteredImageData, 0, 0);
+                } else {
+                    // Just copy original video
+                    ctx.drawImage(originalVideo, 0, 0, filteredCanvas.width, filteredCanvas.height);
+                }
+                
+                ctx.restore();
+
+                animationId = requestAnimationFrame(processFrame);
+            }
+
+            processFrame();
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', () => {
+            startCamera();
+        });
+    </script>
+</body>
+</html>
