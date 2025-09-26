@@ -22,26 +22,22 @@
       "use": "@vercel/static"
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/",
-      "dest": "/home.html"
+      "source": "/",
+      "destination": "/home.html"
     },
     {
-      "src": "/beauty",
-      "dest": "/beauty.html"
+      "source": "/beauty",
+      "destination": "/beauty.html"
     },
     {
-      "src": "/webcam",
-      "dest": "/vintage.html"
+      "source": "/webcam",
+      "destination": "/vintage.html"
     },
     {
-      "src": "/vintage",
-      "dest": "/vintage.html"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/$1"
+      "source": "/vintage",
+      "destination": "/vintage.html"
     }
   ],
   "headers": [
